@@ -1,0 +1,11 @@
+# AutoCAD backups
+*.bak
+*.sv$
+*.ac$
+
+# Compiled VLISP
+*.fas
+*.vlx
+
+# Temp files
+*.tmp
