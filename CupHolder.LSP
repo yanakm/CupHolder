@@ -440,9 +440,12 @@
 
 ; MAIN FUNCTION
 ; the main function that calls the dialog window
-(defun C:CUPHOLDER ( / dcl_id result )
+(defun C:CUPHOLDER ( / dcl_id result DialogPath)
+  ;Finds the full path to a file
+  ;NB Works only if the file is in Support File Search Path
+  (setq DialogPath (findfile "CupHolder/DialogWindows/cupHolderWindow.dcl"))
   ; Load DCL file
-  (setq dcl_id (load_dialog "C:/CupHolder/DialogWindows/cupHolderWindow.dcl"))
+  (setq dcl_id (load_dialog DialogPath))
 
   (if (not (new_dialog "CupDialog" dcl_id))
     (progn
