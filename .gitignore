@@ -9,3 +9,5 @@
 
 # Temp files
 *.tmp
+*._LS
+*._DC
