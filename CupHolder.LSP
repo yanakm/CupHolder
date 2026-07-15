@@ -22,6 +22,9 @@
 ; Global variable to hold saved settings
 (setq CupHolderEnv nil)
 
+;Global variable that shows if utils file is loaded
+(setq LoadUtils 0)
+
 ;----------------------------------------------------------------------------------
 
 ;BASE OF THE CUP HOLDER
@@ -437,10 +440,58 @@
   ); end of defun : DrawCupHolder
 
 ;---------------------------------------------------------------------------------------------------
+; function for loading vla-functions from external file VlaUtils.LSP
+;NB Must be the first function in main function
+(defun LoadVlaUtils ( / filePath)
+  ;Load Vl library
+  (vl-load-com)
+
+  ;Finds the full path to a file
+  ;NB Works only if the file is in Support File Search Path
+  (setq filePath (findfile "CupHolder/VlaUtils.LSP"))
+  
+  ;Check if file exists
+  (if filePath
+    (progn
+      ;Check if utils file has already been loaded
+      (if (= LoadUtils 0)
+        (progn
+          (load filePath)
+	  ;TODO - check if all functions from utils are loaded
+
+	  ;Set LoadUtils to show that utils are loaded
+          (setq LoadUtils 1)
+          
+          (princ (strcat "\nLoaded: VlaUtils.LSP"))
+        )
+        (princ "\nAlready loaded: VlaUtils.LSP")
+      )
+    )
+    (princ "\nERROR: File not found: VlaUtils.LSP")
+  )
+
+  (princ)
+  
+  ); end of defun : LoadVlaUtils
+
+;---------------------------------------------------------------------------------------------------
 
 ; MAIN FUNCTION
 ; the main function that calls the dialog window
 (defun C:CUPHOLDER ( / dcl_id result DialogPath)
+  ; Load functions from VlaUtils
+  (LoadVlaUtils)
+  ;Check if utils are loaded
+  (if (= LoadUtils 0)
+    (progn
+      (alert "Cannot load file: VlaUtils.LSP.")
+      (exit)
+    )
+    )
+  ; Use test function
+  ;(test)
+
+  
   ;Finds the full path to a file
   ;NB Works only if the file is in Support File Search Path
   (setq DialogPath (findfile "CupHolder/DialogWindows/cupHolderWindow.dcl"))
