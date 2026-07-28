@@ -660,9 +660,9 @@
      (alert "Upper diameter out of range. Must be between 3cm and 15cm!")
      nil)
 
-    ; upper diameter > lower diameter
-    ((<= u l)
-     (alert "Upper diameter must be larger than lower diameter!")
+    ; upper diameter => lower diameter
+    ((< u l)
+     (alert "Upper diameter must be larger or equal than lower diameter!")
      nil)
 
     ; handle size btweeen 1 and 6
