@@ -478,7 +478,22 @@
 
 ; MAIN FUNCTION
 ; the main function that calls the dialog window
-(defun C:CUPHOLDER ( / dcl_id result DialogPath)
+(defun C:CUPHOLDER ( / dcl_id result DialogPath dir)
+  ; Add program path to Support File Search Path
+  (if (not (findfile "DialogWindows/cupHolderWindow.dcl"))
+      (progn
+	(setq dir (getProgramDir))
+	(if dir 
+      	    (addSupportPath dir  nil)
+	    (progn
+		    (alert "Program location not specified.")
+	            (exit)
+	    );progn
+	  );if
+	);progn
+    );if
+
+  
   ; Load functions from VlaUtils
   (LoadVlaUtils)
   ;Check if utils are loaded
@@ -688,3 +703,83 @@
     (T T)
   )
 )
+
+
+; get path for program with user input
+(defun getProgramDir ( / path dir testPath)
+  (setq dir nil)
+  (setq path
+  (getfiled "Select CupHolder.LSP from the program directory(CupHolder)" "CupHolder.LSP" "lsp" 0))
+  ; verify that the user has chosen the right path
+  (while path
+	(setq dir (vl-filename-directory path)
+	      testPath (strcat dir "\\DialogWindows\\cupHolderWindow.DCL")
+		   );setq
+    (if (findfile testPath) (setq path nil)
+      ;user did not select the right path
+      (progn
+	(alert "You must select CupHolder.LSP from the program directory(CupHolder)!")
+	(setq path
+  		(getfiled "Select CupHolder.LSP from the program directory(CupHolder)" "CupHolder.LSP" "lsp" 0))
+	);progn
+      );if
+	
+    
+    );while
+  ;return
+  dir
+
+  ); end of defun : getProgramDir
+
+;subroutine to add support path on the pos+1 place
+(defun addSupportPath (dir pos / tmp c lst )
+
+	(setq tmp ""
+	      c -1
+	)
+	(if
+		(not
+		  (member (strcase dir)
+			(setq lst 
+			  (mapcar 'strcase 
+				(parse (getenv "ACAD") ";")
+			  )
+			);setq
+		  );member
+		);not	
+	(progn
+		(if (not pos)
+			(setq tmp (strcat (getenv "ACAD") ";" dir))
+			(mapcar '(lambda (x)
+			(setq tmp (if (= (setq c (1+ c)) pos)
+					(strcat tmp ";" dir ";" x)
+					(strcat tmp ";" x)
+				  )
+			)
+			)
+		(parse (getenv "ACAD") ";")
+		)
+	)
+	(setenv "ACAD" tmp)
+	)
+	)
+(princ)
+); end of defun : addSupportPath
+
+
+
+;parsing routine - split str on character delim and return a list 
+(defun parse (str delim / lst pos)
+	(setq pos (vl-string-search delim str))
+	(while pos
+		(setq lst (cons (substr str 1 pos) lst)
+			str (substr str (+ pos 2))
+			pos (vl-string-search delim str)
+		)
+	)
+	(if (> (strlen str) 0)
+		(setq lst (cons str lst))
+	)
+		(reverse lst)
+); end of defun : parse
+
