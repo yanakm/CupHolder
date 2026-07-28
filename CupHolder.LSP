@@ -2,6 +2,9 @@
 ; 				TWO HANDLED CUP HOLDER				   
 ;----------------------------------------------------------------------------------
 
+ ;Load Vl library
+  (vl-load-com)
+
 ;GLOBAL VARIABLES
 (setq wallThickness 3.5)
 (setq baseThickness 5.0)
@@ -443,9 +446,6 @@
 ; function for loading vla-functions from external file VlaUtils.LSP
 ;NB Must be the first function in main function
 (defun LoadVlaUtils ( / filePath)
-  ;Load Vl library
-  (vl-load-com)
-
   ;Finds the full path to a file
   ;NB Works only if the file is in Support File Search Path
   (setq filePath (findfile "CupHolder/VlaUtils.LSP"))
