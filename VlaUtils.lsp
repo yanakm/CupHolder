@@ -245,3 +245,93 @@
     )
   )
 ); end of defun : UT_extrude
+
+(defun UT_subtract (mainSS subSS / mainEname mainSolid subEname subSolid i result)
+
+  ;validate input
+  (if (or (null mainSS)
+          (null subSS)
+          (= (sslength mainSS) 0)
+          (= (sslength subSS) 0))
+
+    (progn
+      (prompt "\nUT_booleanSubtract - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      ;get main solid
+      (setq mainEname
+            (ssname mainSS 0))
+
+      (setq mainSolid
+            (vlax-ename->vla-object mainEname))
+
+
+      ;check main object type
+      (if (/= (vla-get-ObjectName mainSolid)
+              "AcDb3dSolid")
+
+        (progn
+          (prompt "\nUT_booleanSubtract - Main object is not a 3D solid.")
+          nil
+        )
+
+        (progn
+
+          ;subtract every solid in subSS
+          (setq i 0)
+          (setq result T)
+
+          (while (< i (sslength subSS))
+
+            (setq subEname
+                  (ssname subSS i))
+
+            (setq subSolid
+                  (vlax-ename->vla-object subEname))
+
+
+            (if (= (vla-get-ObjectName subSolid)
+                   "AcDb3dSolid")
+
+              (progn
+
+                (setq result
+                      (vl-catch-all-apply
+                        'vla-Boolean
+                        (list
+                          mainSolid
+                          2 ; acSubtraction
+                          subSolid)))
+
+                (if (vl-catch-all-error-p result)
+                  (progn
+                    (prompt
+                      (strcat
+                        "\nUT_booleanSubtract failed: "
+                        (vl-catch-all-error-message result)))
+                    (setq result nil)
+                  )
+                )
+              )
+            )
+
+            (setq i (1+ i))
+          )
+
+
+          ;; Update solid
+          (if result
+            (progn
+              (vla-Update mainSolid)
+              mainSolid
+            )
+            nil
+          )
+        )
+      )
+    )
+  )
+); end of defun : UT_subtract
