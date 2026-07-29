@@ -630,8 +630,9 @@
 
   (setvar "OSMODE" 0)
   (setvar "CMDECHO" 0)
-  (command "_.-VISUALSTYLES" "_Current" "_Realistic")
-  (command "-VIEW" "_SEISO")
+  
+  ;sets visual styles and isometric view
+  (Set3DView)
   (command "_.UCS" "_World")
 
   (princ)
@@ -785,3 +786,22 @@
 ); end of defun : parse
 
 
+(defun Set3DView (/ acadObject acadDocument viewport)
+  
+  (setq acadObject   (vlax-get-acad-object))
+  (setq acadDocument (vla-get-ActiveDocument acadObject))
+
+  (setq viewport
+        (vla-get-ActiveViewport acadDocument))
+
+  ;set visual style to Realistic
+  (vla-SendCommand (vla-get-ActiveDocument (vlax-get-acad-object)) "_.vscurrent _realistic ")
+
+
+  ;set SE Isometric view
+  (vla-put-Direction viewport (vlax-3d-point '(1 -1 1)))
+
+
+  ;apply viewport changes
+  (vla-put-ActiveViewport acadDocument viewport)
+); end of defun : parse
