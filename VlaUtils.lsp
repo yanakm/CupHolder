@@ -181,3 +181,67 @@
     )
   )
 ); end of defun : UT_revolve
+
+(defun UT_extrude (modelSpace entityList extrusionHeight / regions regionObject solidResult)
+
+  ;validate input
+  (if (or (null modelSpace)
+          (null entityList)
+          (null extrusionHeight))
+
+    (progn
+      (prompt "\nUT_extrude - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      ;create region 
+      (setq regionObject
+            (getRegion modelSpace entityList))
+
+
+      ;check region creation
+      (if (null regionObject)
+
+        (progn
+          (prompt "\nUT_extrude - Region creation failed.")
+          nil
+        )
+
+        (progn
+
+          ;create extruded solid
+          ;taper angle = 0.0
+          (setq solidResult
+                (vl-catch-all-apply
+                  'vla-AddExtrudedSolid
+                  (list
+                    modelSpace
+                    regionObject
+                    extrusionHeight
+                    0.0)))
+
+
+          ;check ActiveX error
+          (if (vl-catch-all-error-p solidResult)
+
+            (progn
+              (prompt
+                (strcat
+                  "\nUT_extrude failed: "
+                  (vl-catch-all-error-message solidResult)))
+              nil
+            )
+	    (progn
+	       ;delete region
+	    (vla-delete regionObject)
+
+            solidResult
+	    )
+          )
+        )
+      )
+    )
+  )
+); end of defun : UT_extrude
