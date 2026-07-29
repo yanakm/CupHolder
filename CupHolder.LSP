@@ -640,7 +640,8 @@
 ;restores the old system variables
 (defun RestoreEnvironment (/)
 
-  (command "_.ZOOM" "A")
+  (setq acadObj (vlax-get-acad-object))
+  (vla-ZoomAll acadObj)
   (foreach item CupHolderEnv
     (setvar (car item) (cdr item))
   )
@@ -782,4 +783,5 @@
 	)
 		(reverse lst)
 ); end of defun : parse
+
 
