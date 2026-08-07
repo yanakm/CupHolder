@@ -600,4 +600,69 @@
       successCount
     )
   )
-); end of defun : UT_UT_rotate3D
+); end of defun : UT_rotate3D
+
+(defun UT_move3D (selection fromPoint toPoint / index entity object result successCount)
+
+  ;validate input
+  (if (or (null selection)
+          (= (sslength selection) 0)
+          (null fromPoint)
+          (null toPoint))
+
+    (progn
+      (prompt "\nUT_move3D - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      (setq index 0)
+      (setq successCount 0)
+
+
+      ;move every selected object
+      (while (< index (sslength selection))
+
+        (setq entity
+              (ssname selection index))
+
+        (setq object
+              (vlax-ename->vla-object entity))
+
+
+        ;apply move safely
+        (setq result
+              (vl-catch-all-apply
+                'vla-Move
+                (list
+                  object
+                  (vlax-3d-point fromPoint)
+                  (vlax-3d-point toPoint))))
+
+
+        ;check COM error
+        (if (vl-catch-all-error-p result)
+
+          (prompt
+            (strcat
+              "\nUT_move3D failed: "
+              (vl-catch-all-error-message result)))
+
+          (progn
+            (vla-Update object)
+            (setq successCount
+                  (1+ successCount))
+          )
+        )
+
+
+        (setq index
+              (1+ index))
+      )
+
+
+      successCount
+    )
+  )
+); end of defun : UT_move3D
