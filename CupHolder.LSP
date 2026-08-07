@@ -32,7 +32,7 @@
 
 ;BASE OF THE CUP HOLDER
 ;Draws and returns the base of the cupholder
-(defun base (R bottomless / paddedR paddedRD holeR c c1 c2 baseSolid loftSolid ss)
+(defun base (R bottomless / paddedR paddedRD holeR c  baseSolid loftSolid ss baseProfile p1 p2 p3 p4)
   (setq paddedR (+ R wallThickness)) ; The inner radius + wall thickness = the radius of the upper base
   (setq paddedRD (* paddedR 1.075)) ; A bit bigger lower base
   (setq holeR (* R 0.7)) ; 70% of the base will be hollowed out
@@ -48,49 +48,46 @@
 		 ))
 	  (setq c (entlast))
 
-   		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-	  (command "_.EXTRUDE" c "" 6.0)
+   	  (UT_extrude mSpace (list c) 6.0)
 	  (setq baseSolid (entlast))
   ))
-  
-  ; Creating the two circles
-  ; The lower
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 (list 10 0.0 0.0 0.0)
-	 (cons 40  paddedRD)
-	 ))
-  (setq c1 (entlast))
-  ; The upper
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 (list 10 0.0 0.0 baseThickness)
-	 (cons 40  paddedR)
-	 ))
-  (setq c2 (entlast))
+; Creating the profile for the base
+  (setq p1 (list 0.0 0.0 0.0)
+	p2 (polar p1 0 paddedRD)
+	p3 (polar p1 (/ pi 2.0)  baseThickness)
+	p4 (polar p3 0 paddedR)
+	)
 
-  ; Lofting the two circles into a solid
-  (setq ss (ssadd))
-  (ssadd c1 ss)
-  (ssadd c2 ss)
+  (setq baseProfile
+	  (entmakex (list
+	        '(0 . "LWPOLYLINE")
+	        '(100 . "AcDbEntity")
+	        '(100 . "AcDbPolyline")
+	        (cons 90 4)
+	        '(70 . 1) ; closed polyline
+		 ;vertices
+		(cons 10 p2)
+		(cons 10 p1)
+		(cons 10 p3)
+		(cons 10 p4)
+		)
+		
+	      )
+	)
+  ;revolving base profile
+  (UT_revolve mSpace (list baseProfile) p1 p3 360.0)
 
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.LOFT" ss "" "")
+  ;Rotating the base
+  (setq loftSolid (ssadd (entlast) (ssadd)))
+
+  (UT_rotate3D loftSolid p1 (list 1 0 0) 90.0)
+
   (setq loftSolid (entlast))
 
   ; Subtract the base only if the cup is bottomless
   (if bottomless
-
-    		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-    (command "_.SUBTRACT" loftSolid "" baseSolid "")
+    	; Turn entity name to a selection then subtract
+  	(UT_subtract (ssadd loftSolid (ssadd)) (ssadd baseSolid (ssadd)))
   )
 
   ; Returning the base
