@@ -411,34 +411,23 @@
 	(if outerBodySolid (ssadd outerBodySolid ss))
   	(if rightHandleSolid (ssadd rightHandleSolid ss))
   	(if leftHandleSolid (ssadd leftHandleSolid ss))
-
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
   
-  	;(command "_.UNION" ss "")
   	(UT_union ss)
 	(setq mainSolid (entlast))
-  	(command "")
+  	
 
   	; Subtracting the inner body - hollowing out the cup holder
   	(setq innerBodySolid (innerBody downRadius upperRadius height))
 
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  
-  	(command "_.SUBTRACT" mainSolid "" innerBodySolid "")
+  	; Turn entity name to a selection then subtract
+  	(UT_subtract (ssadd mainSolid (ssadd)) (ssadd innerBodySolid (ssadd)))
   	(setq mainSolid (entlast))
 
   	; Subtracting the cutout - creating the distance from top and slits
   	(setq cutoutSolid (cutout cutoutHeight cutoutWidth cutoutDisplacement cutoutTop))
   
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-
-  	(command "_.SUBTRACT" mainSolid "" cutoutSolid "")
+  	; Turn entity name to a selection then subtract
+  	(UT_subtract (ssadd mainSolid (ssadd)) (ssadd cutoutSolid (ssadd)))
   	(setq mainSolid (entlast))
   
   ); end of defun : DrawCupHolder
