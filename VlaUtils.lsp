@@ -420,3 +420,111 @@
     )
   )
 ); end of defun : UT_union
+
+(defun isValidPathType (entity / objectName)
+
+  (and entity
+
+       (setq objectName
+             (cdr
+               (assoc 0
+                 (entget entity))))
+
+       (member objectName
+         '("LINE"
+           "LWPOLYLINE"
+           "POLYLINE"
+           "SPLINE"
+           "ARC"
+           "CIRCLE"
+           "ELLIPSE"))
+  )
+); end of defun : isValidPathType
+
+;NB profileSelection must be a list of entity names
+;NB about path and profile placement: 
+;   - The profile and the path should not intersect.
+;   - The ActiveX method (vla-AddExtrudedSolidAlongPath) is more restrictive
+;     than AutoCAD's SWEEP command. Unlike the command, it does not
+;     automatically align the profile to the path.
+;   - The profile should already be positioned and oriented so that its plane
+;     is perpendicular to the tangent of the path at the start point.
+;   - If the profile is tangent to the path (for example, both lie in the
+;     same XY plane), the operation may fail with:
+;         "Profile and path are tangential"
+;         "Automation Error. General modeling failure"
+(defun UT_sweep (modelSpace profileSelection pathEntity / regionObject pathObject solidResult)
+
+  ;validate input
+  (if (or (null modelSpace)
+          (null profileSelection)
+          (null pathEntity))
+
+    (progn
+      (prompt "\nUT_sweep - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      ;verify path
+      (if (not (isValidPathType pathEntity))
+
+        (progn
+          (prompt "\nUT_sweep - Invalid path.")
+          nil
+        )
+
+        (progn
+
+          ;create region
+          (setq regionObject (getRegion modelSpace profileSelection))
+
+          ;verify region
+          (if (null regionObject)
+
+            (progn
+              (prompt "\nUT_sweep - Region creation failed.")
+              nil
+            )
+
+            (progn
+
+              ;convert path to VLA object
+              (setq pathObject
+                    (vlax-ename->vla-object pathEntity))
+
+              ;create swept solid
+              (setq solidResult
+                    (vl-catch-all-apply
+                      'vla-AddExtrudedSolidAlongPath
+                      (list
+                        modelSpace
+                        regionObject
+                        pathObject)))
+
+              ;check COM error
+              (if (vl-catch-all-error-p solidResult)
+
+                (progn
+                  (prompt
+                    (strcat
+                      "\nUT_sweep failed: "
+                      (vl-catch-all-error-message
+                        solidResult)))
+                  nil
+                )
+
+                (progn
+	 		 ;delete region
+	 		 (vla-delete regionObject)
+        		solidResult
+		)
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+); end of defun : UT_sweep
