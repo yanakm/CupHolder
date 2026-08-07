@@ -255,7 +255,7 @@
           (= (sslength subSS) 0))
 
     (progn
-      (prompt "\nUT_booleanSubtract - Invalid input.")
+      (prompt "\nUT_subtract - Invalid input.")
       nil
     )
 
@@ -274,7 +274,7 @@
               "AcDb3dSolid")
 
         (progn
-          (prompt "\nUT_booleanSubtract - Main object is not a 3D solid.")
+          (prompt "\nUT_subtract - Main object is not a 3D solid.")
           nil
         )
 
@@ -310,7 +310,7 @@
                   (progn
                     (prompt
                       (strcat
-                        "\nUT_booleanSubtract failed: "
+                        "\nUT_subtract failed: "
                         (vl-catch-all-error-message result)))
                     (setq result nil)
                   )
@@ -322,7 +322,7 @@
           )
 
 
-          ;; Update solid
+          ;update solid
           (if result
             (progn
               (vla-Update mainSolid)
@@ -335,3 +335,88 @@
     )
   )
 ); end of defun : UT_subtract
+
+(defun UT_union (selection / mainEname mainSolid unionEname unionSolid i result)
+
+  ;validate input
+  (if (or (null selection)
+          (= (sslength selection) 0))
+
+    (progn
+      (prompt "\nUT_union - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      ;get main solid
+      (setq mainEname
+            (ssname selection 0))
+
+      (setq mainSolid
+            (vlax-ename->vla-object mainEname))
+
+
+      ;verify main object
+      (if (/= (vla-get-ObjectName mainSolid)
+              "AcDb3dSolid")
+
+        (progn
+          (prompt
+            "\nUT_union - First selected object is not a 3D solid.")
+          nil
+        )
+
+        (progn
+
+          (setq i 1)
+
+          ;union all remaining solids
+          (while (< i (sslength selection))
+
+            (setq unionEname
+                  (ssname selection i))
+
+            (setq unionSolid
+                  (vlax-ename->vla-object unionEname))
+
+
+            ;verify object type
+            (if (/= (vla-get-ObjectName unionSolid)
+                    "AcDb3dSolid")
+
+              (prompt  "\nUT_union - Skipping object (not a 3D solid).")
+
+              (progn
+
+                (setq result
+                      (vl-catch-all-apply
+                        'vla-Boolean
+                        (list
+                          mainSolid
+                          acUnion           ; acUnion
+                          unionSolid)))
+
+                ;check COM error
+                (if (vl-catch-all-error-p result)
+
+                  (prompt
+                    (strcat
+                      "\nUT_union failed: "
+                      (vl-catch-all-error-message result)))
+                )
+              )
+            )
+
+            (setq i (1+ i))
+          )
+
+          ;update solid
+          (vla-Update mainSolid)
+
+          mainSolid
+        )
+      )
+    )
+  )
+); end of defun : UT_union
