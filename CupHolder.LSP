@@ -416,7 +416,8 @@
    		; 		COMMAND		            
    		;-------------------------------------------
   
-  	(command "_.UNION" ss "")
+  	;(command "_.UNION" ss "")
+  	(UT_union ss)
 	(setq mainSolid (entlast))
   	(command "")
 
@@ -496,6 +497,9 @@
   
   ; Load functions from VlaUtils
   (LoadVlaUtils)
+  ; get Model Space for vla-functions
+  (setq mSpace (getModelSpace))
+
   ;Check if utils are loaded
   (if (= LoadUtils 0)
     (progn
