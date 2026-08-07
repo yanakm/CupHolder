@@ -358,28 +358,15 @@
   	(command "_.FILLET" "R" 8.0)
 	(command "_.FILLET" "P" fig)
   	(command "")
-
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
   
   	;; Extruding, rotating and positioning in the right place
-  	(command "_.EXTRUDE" fig "" 250.0)
+  	(UT_extrude mSpace (list fig) 250.0)
+  
   	(setq fig (entlast))
-	(command "_.ROTATE3D"
-         fig
-         ""
-         "_X"
-         '(0 0 0)
-         90.0)
-  	(command "")
 
-  	(command "_.MOVE"
-		 fig
-		 ""
-		 '(0 0 0)
-		 (list 0.0 125.0 (+ displacement baseThickness)))
-  	(command "")
+  	(UT_rotate3D (ssadd fig (ssadd)) (list 0 0 0) (list 1 0 0) 90.0)
+  
+  	(UT_move3D (ssadd fig (ssadd)) (list 0 0 0) (list 0.0 125.0 (+ displacement baseThickness)))
 
   	;; Returning the cutout
   	fig
