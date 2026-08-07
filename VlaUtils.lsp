@@ -517,7 +517,8 @@
 
                 (progn
 	 		 ;delete region
-	 		 (vla-delete regionObject)
+	 		(vla-delete regionObject)
+		  	(vla-delete  pathObject)
         		solidResult
 		)
               )
