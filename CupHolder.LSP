@@ -98,33 +98,37 @@
 
 ;OUTER BODY OF THE CUP HOLDER
 ;Draws and returns the outer body of the cup
-(defun outerBody (dR uR H / c1 c2 loftSolidOuter ss)
-  ; Making the two circles
-  ; the lower
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 '(10 0.0 0.0 5.0)
-	 (cons 40  (+ dR wallThickness))
-	 ))
-  (setq c1 (entlast))
-  ; the upper
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 (cons 10 (list 0.0 0.0 (+ baseThickness H)))
-	 (cons 40  (+ uR 3.5))
-	 ))
-  (setq c2 (entlast))
+(defun outerBody (dR uR H / loftSolidOuter ss outerBodyProfile p1 p2 p3 p4)
+  ; Creating the profile for   outer Body
+  (setq p1 (list  0.0 5.0 0.0 )
+	p2 (polar p1 0 (+ dR wallThickness))
+	p3 (polar (list 0.0 0.0 0.0) (/ pi 2.0)  (+ baseThickness H))
+	p4 (polar p3 0 (+ uR 3.5))
+	)
 
-  (setq ss (ssadd))
-  (ssadd c1 ss)
-  (ssadd c2 ss)
-  
-		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.LOFT" ss "" "")
+  (setq outerBodyProfile
+	  (entmakex (list
+	        '(0 . "LWPOLYLINE")
+	        '(100 . "AcDbEntity")
+	        '(100 . "AcDbPolyline")
+	        (cons 90 4)
+	        '(70 . 1) ; closed polyline
+		 ;vertices
+		(cons 10 p2)
+		(cons 10 p1)
+		(cons 10 p3)
+		(cons 10 p4)
+		)
+		
+	      )
+	)
+  ;revolving outer body profile
+  (UT_revolve mSpace (list outerBodyProfile) p1 p3 360.0)
+
+  ;Rotating the outer body
+  (setq loftSolidOuter (ssadd (entlast) (ssadd)))
+
+  (UT_rotate3D loftSolidOuter (list 0 0 0) (list 1 0 0) 90.0)
   (setq loftSolidOuter (entlast))
 
   loftSolidOuter
@@ -134,33 +138,38 @@
 
 ; INNER BODY - THE SUBTRACTING PART
 ; Draws and returns the inner body
-(defun innerBody (dr uR H / c1 c2 loftSolidInner ss)
-  ; Drawing the two circles
-  ; the lower
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 (list 10 0.0 0.0 baseThickness)
-	 (cons 40 dR)
-	 ))
-  (setq c1 (entlast))
-  ; the upper
-  (entmake
-	 (list
-	 '(0 . "CIRCLE")
-	 (cons 10 (list 0.0 0.0 (+ baseThickness H)))
-	 (cons 40 uR)
-	 ))
-  (setq c2 (entlast))
+(defun innerBody (dr uR H /  loftSolidInner ss innerBodyProfile p1 p2 p3 p4)
+  ;Creating the profile for inner body
+  (setq p1 (list  0.0 baseThickness 0.0 )
+	p2 (polar p1 0 dR)
+	p3 (polar (list 0.0 0.0 0.0) (/ pi 2.0)  (+ baseThickness H))
+	p4 (polar p3 0 uR)
+	)
 
-  (setq ss (ssadd))
-  (ssadd c1 ss)
-  (ssadd c2 ss)
+  (setq innerBodyProfile
+	  (entmakex (list
+	        '(0 . "LWPOLYLINE")
+	        '(100 . "AcDbEntity")
+	        '(100 . "AcDbPolyline")
+	        (cons 90 4)
+	        '(70 . 1) ; closed polyline
+		 ;vertices
+		(cons 10 p2)
+		(cons 10 p1)
+		(cons 10 p3)
+		(cons 10 p4)
+		)
+		
+	      )
+	)
+  ;revolving inner body profile
+  (UT_revolve mSpace (list innerBodyProfile) p1 p3 360.0)
 
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.LOFT" ss "" "")
+  ;Rotating inner body
+  (setq loftSolidInner (ssadd (entlast) (ssadd)))
+
+  (UT_rotate3D loftSolidInner (list 0 0 0) (list 1 0 0) 90.0)
+  
   (setq loftSolidInner (entlast))
 
   ; Returning the inner body solid
