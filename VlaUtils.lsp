@@ -529,3 +529,75 @@
     )
   )
 ); end of defun : UT_sweep
+
+;rotationAngle is in degrees
+(defun UT_rotate3D (selection axisPoint axisDirection rotationAngle
+		    / index entity object result successCount)
+  
+  ;validate input
+  (if (or (null selection)
+          (= (sslength selection) 0)
+          (null axisPoint)
+          (null axisDirection)
+          (null rotationAngle))
+
+    (progn
+      (prompt "\nUT_rotate3D - Invalid input.")
+      nil
+    )
+
+    (progn
+
+      ;convert degrees to radians
+      (setq rotationAngle (* rotationAngle (/ pi 180.0)))
+
+      (setq index 0)
+      (setq successCount 0)
+
+
+      ;rotate every selected object
+      (while (< index (sslength selection))
+
+        (setq entity
+              (ssname selection index))
+
+        (setq object
+              (vlax-ename->vla-object entity))
+
+
+        ;apply rotation safely
+        (setq result
+              (vl-catch-all-apply
+                'vla-Rotate3D
+                (list
+                  object
+                  (vlax-3d-point axisPoint)
+                  (vlax-3d-point axisDirection)
+                  rotationAngle)))
+
+
+        ;check error
+        (if (vl-catch-all-error-p result)
+
+          (prompt
+            (strcat
+              "\nUT_rotate3D failed: "
+              (vl-catch-all-error-message result)))
+
+          (progn
+            (vla-Update object)
+            (setq successCount
+                  (1+ successCount))
+          )
+        )
+
+
+        (setq index
+              (1+ index))
+      )
+
+
+      successCount
+    )
+  )
+); end of defun : UT_UT_rotate3D
