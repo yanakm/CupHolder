@@ -337,18 +337,11 @@
 ;Draws and returns a left handle, moving it to place
 (defun handleLeft (H S F hT hS hTh / )
   (setq obj (handle H S F hT hS hTh))
-
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.ROTATE3D" handleSolid "" "Z" '(0 0 0) "180" "")
+  
+  (UT_rotate3D (ssadd handleSolid (ssadd)) (list 0 0 0) (list 0 0 1) 180.0)
   (setq handleSolid (entlast))
   
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  
-  (command "_.3DMOVE" obj "" '(0 0 0) S "")
+  (UT_move3D (ssadd obj (ssadd)) (list 0.0 0.0 0.0) S)
   (setq handleSolid (entlast))
   handleSolid
   )
