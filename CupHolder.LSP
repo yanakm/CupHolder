@@ -302,13 +302,19 @@
 
   ; Getting the sweep figure
   (setq fig (sweepFigure figH figW))
+  (setq p1 (list (- figH) 0.0 0.0))
+  (UT_move3D (ssadd fig (ssadd)) (list 0.0 0.0 0.0) p1)
+  (UT_rotate3D (ssadd fig (ssadd)) p1 (list (car p1) 1 0) 90.0)
 
   ; Sweeping
-  (command "_.SWEEP" fig "" handleLine "")
+  (UT_sweep (getModelSpace)  (list fig) handleLine)
+  ;(entdel handleLine)
+  
   (setq handleSolid (entlast))
 
   ; Rotating and moving to the correct spot
-  (command "_.ROTATE3D" handleSolid "" "X" '(0 0 0) "90" "")
+  (UT_rotate3D (ssadd handleSolid (ssadd)) (list 0 0 0) (list 1 0 0) 90.0)
+
   (setq handleSolid (entlast))
 
   ; Returning the generic handle
@@ -320,11 +326,8 @@
 ; Draws and returns a right handle, moving it to place
 (defun handleRight (H S F hT hS hTh / )
   (setq obj (handle H S F hT hS hTh))
-
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.3DMOVE" obj "" '(0 0 0) S "")
+  
+  (UT_move3D (ssadd obj (ssadd)) (list 0.0 0.0 0.0) S)
   (setq handleSolid (entlast))
   handleSolid
   )
