@@ -354,33 +354,60 @@
 
 ;CUTOUT
 ;Draws and returns the cutout piece
-(defun cutout (H W displacement top / p1 p2 p3 p4 p5 p6 p7 p8)
+(defun cutout (H W displacement top / p4 p5 p6 p7 R b1 b2 b3 b4 b5 b6 b7 b8 bulge1 bulge2 bulge3 bulge4)
   	;; Creating the points of the cutout polyline
   	;; And creating the polyline
-   	(setq p1 (list (/ W -2.0) 0.0 0.0))
-  	(setq p2 (list (/ W 2.0) 0.0 0.0))
-  	(setq p3 (list (/ W  2.0) H 0.0))
   	(setq p4 (list (* 20 W) H 0.0))
   	(setq p5 (list (* 20 W) (+ H 10.0 top) 0.0))
   	(setq p6 (list (- (* 20 W)) (+ H 10.0 top) 0.0))
   	(setq p7 (list (- (* 20 W)) H  0.0))
-  	(setq p8 (list (/ W -2.0) H 0.0))
-  
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  
-  	(command "_.PLINE" p1 p2 p3 p4 p5 p6 p7 p8 "C")
-  	(setq fig (entlast))
+  	(setq R 8.0
+	      b1 (list (+ (/ W -2.0) R) 0.0 0.0)
+	      b2 (list (- (/ W 2.0) R) 0.0 0.0)
+	      b3 (list (/ W 2.0) R 0.0)
+	      b4 (list (/ W  2.0) (- H R) 0.0)
+	      b5 (list (+ (/ W  2.0) R) H 0.0)
+	      b6 (list (- (+ R (/ W 2.0))) H 0.0)
+	      b7 (list (/ W -2.0) (- H R) 0.0)
+	      b8 (list (/ W -2.0) R 0.0)
+	      )
 
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  
-  	;; Rounding up the edges with R=8.0
-  	(command "_.FILLET" "R" 8.0)
-	(command "_.FILLET" "P" fig)
-  	(command "")
+	  ; calculate bulges
+	     (setq bulge1 (getBulge b8 b1 R))
+	     (setq bulge2 (getBulge b2 b3 R))
+	     (setq bulge3 (- (getBulge b4 b5 R)))
+	     (setq bulge4 (- (getBulge b6 b7 R)))
+	    
+	   
+	  (setq fig (entmakex
+	      (list
+	        '(0 . "LWPOLYLINE")
+	        '(100 . "AcDbEntity")
+	        '(100 . "AcDbPolyline")
+	        (cons 90 13)
+	        '(70 . 1) ; closed polyline
+		 ;vertices
+		(cons 10 b8)
+		(cons 42 bulge1)
+		(cons 10 b1)
+		(cons 10 b2)
+		(cons 42 bulge2)
+		(cons 10 b3)
+		(cons 10 b4)
+		(cons 42 bulge3)
+		(cons 10 b5)
+		(cons 10 p4)
+		(cons 10 p5)
+		(cons 10 p6)
+		(cons 10 p7)
+		(cons 10 b6)
+		(cons 42 bulge4)
+		(cons 10 b7)
+		(cons 10 b8)
+		
+	      )
+	      )
+	  )
   
   	;; Extruding, rotating and positioning in the right place
   	(UT_extrude mSpace (list fig) 250.0)
