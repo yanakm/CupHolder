@@ -180,29 +180,52 @@
 ;------------------------------------------------------------------------------------------
 
 ;SWEEP FIGURE - THE SHAPE OF THE HANDLE WIDTH
-(defun sweepFigure ( W H / q1 q2 q3 q4)
-  (setq x (/ W 2.0))
-  (setq y (/ H 2.0))
-  (setq q1 (list x y))
-  (setq q2 (list x (- y)))  
-  (setq q3 (list (- x) (- y)))
-  (setq q4 (list (- x) y))
+(defun sweepFigure ( W H / x y p1 p2 p3 p4 p5 p6 p7 p8 R bulge1 bulge2 bulge3 bulge4)
+   (setq x (/ W 2.0))
+   (setq y (/ H 2.0))
+   (setq R 2.0
+	p1 (list x (- y R))
+	p2 (list x (+ (- y) R))
+	p3 (list (- x R) (- y))
+	p4 (list (+ (- x) R) (- y))
+	p5 (list (- x) (+ (- y) R))
+	p6 (list (- x) (- y R))
+	p7 (list (+ (- x) R) y)
+	p8 (list (- x R) y)
+	)
   
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.PLINE" q1 q2 q3 q4 "C")
-  (setq fig (entlast))
-  
-  ; Rounding up the edges with R=8.0
-
-  		;-------------------------------------------
-   		; 		COMMAND		            
-   		;-------------------------------------------
-  (command "_.FILLET" "R" 2.0)
-  (command "_.FILLET" "P" fig)
-  (command "")
-  (setq fig (entlast))
+   ; calculate bulges
+     (setq bulge1 (- (getBulge p8 p1 R)))
+     (setq bulge2 (- (getBulge p2 p3 R)))
+     (setq bulge3 (- (getBulge p4 p5 R)))
+     (setq bulge4 (- (getBulge p6 p7 R)))
+    
+   
+  (setq fig (entmakex
+      (list
+        '(0 . "LWPOLYLINE")
+        '(100 . "AcDbEntity")
+        '(100 . "AcDbPolyline")
+        (cons 90 8)
+        '(70 . 1) ; closed polyline
+	 ;vertices
+	(cons 10 p8)
+	(cons 42 bulge1)
+	(cons 10 p1)
+	(cons 10 p2)
+	(cons 42 bulge2)
+	(cons 10 p3)
+	(cons 10 p4)
+	(cons 42 bulge3)
+	(cons 10 p5)
+	(cons 10 p6)
+	(cons 42 bulge4)
+	(cons 10 p7)
+	(cons 10 p8)
+	
+      	)
+      )
+  )
 
   ; Returning the sweep figure
   fig
@@ -791,3 +814,13 @@
   ;apply viewport changes
   (vla-put-ActiveViewport acadDocument viewport)
 ); end of defun : parse
+
+;calculate bulge for entmake
+(defun GetBulge (p1 p2 rad / dist h)
+  (setq dist (distance p1 p2))
+  (if (<= (* 2.0 rad) dist)
+    (setq h rad)
+    (setq h (- rad (sqrt (- (* rad rad) (* (/ dist 2.0) (/ dist 2.0))))))
+  )
+  (/ (* 2.0 h) dist)
+); end GetBulge 
